@@ -1,0 +1,225 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}欠課管理アプリ{% endblock %}</title>
+    <style>
+        body { 
+            font-family: 'Arial', sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f8f9fa; 
+            color: #212529; 
+            line-height: 1.6;
+        }
+        .header { 
+            background-color: #212529; 
+            color: #ffffff; 
+            padding: 15px 30px; 
+            border-bottom: 1px solid #dee2e6;
+        }
+        .header h1 { 
+            margin: 0; 
+            display: inline-block; 
+            font-weight: 300; 
+            font-size: 1.8rem;
+        }
+        .nav { 
+            float: right; 
+            margin-top: 8px; 
+        }
+        .nav a { 
+            color: #ffffff; 
+            text-decoration: none; 
+            margin-left: 20px; 
+            font-weight: 300;
+            transition: color 0.3s ease;
+        }
+        .nav a:hover { 
+            color: #6c757d; 
+        }
+        .nav span {
+            color: #6c757d;
+            margin-right: 10px;
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 30px 20px; 
+        }
+        .messages { 
+            margin-bottom: 20px; 
+        }
+        .message { 
+            padding: 12px 15px; 
+            margin-bottom: 10px; 
+            border-radius: 0px; 
+            border-left: 4px solid;
+        }
+        .message.success { 
+            background-color: #f8f9fa; 
+            color: #212529; 
+            border-left-color: #495057;
+        }
+        .message.error { 
+            background-color: #f8f9fa; 
+            color: #212529; 
+            border-left-color: #212529;
+        }
+        .message.info { 
+            background-color: #f8f9fa; 
+            color: #212529; 
+            border-left-color: #6c757d;
+        }
+        .form-group { 
+            margin-bottom: 20px; 
+        }
+        .form-group label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 400; 
+            color: #495057;
+        }
+        .form-group input, .form-group select, .form-group textarea { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #dee2e6; 
+            border-radius: 0px; 
+            font-size: 14px; 
+            box-sizing: border-box;
+            background-color: #ffffff;
+            transition: border-color 0.3s ease;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #495057;
+        }
+        .btn { 
+            padding: 12px 24px; 
+            background-color: #007bff; 
+            color: #ffffff; 
+            border: 2px solid #007bff; 
+            border-radius: 0px; 
+            cursor: pointer; 
+            text-decoration: none; 
+            display: inline-block; 
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover { 
+            background-color: #0056b3; 
+            border-color: #0056b3;
+            color: #ffffff;
+        }
+        .btn-secondary { 
+            background-color: #ffffff; 
+            color: #6c757d;
+            border: 2px solid #6c757d;
+        }
+        .btn-secondary:hover { 
+            background-color: #6c757d; 
+            color: #ffffff;
+        }
+        .btn-danger { 
+            background-color: #ffffff; 
+            color: #dc3545;
+            border: 2px solid #dc3545;
+        }
+        .btn-danger:hover { 
+            background-color: #dc3545; 
+            color: #ffffff;
+        }
+        .card { 
+            background-color: #ffffff; 
+            padding: 30px; 
+            border-radius: 0px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+            margin-bottom: 20px; 
+            border: 1px solid #dee2e6;
+        }
+        .clearfix::after { 
+            content: ""; 
+            clear: both; 
+            display: table; 
+        }
+        .course-card { 
+            border: 1px solid #dee2e6; 
+            margin: 15px 0; 
+            padding: 20px; 
+            border-radius: 0px; 
+            background-color: #ffffff; 
+            transition: box-shadow 0.3s ease;
+        }
+        .course-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .course-name { 
+            font-size: 1.3rem; 
+            font-weight: 400; 
+            color: #212529; 
+            margin-bottom: 10px;
+        }
+        .course-info { 
+            margin: 6px 0; 
+            color: #6c757d; 
+            font-size: 0.95rem;
+        }
+        .no-courses { 
+            text-align: center; 
+            color: #6c757d; 
+            margin: 60px 0; 
+            font-size: 1.1rem;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 300;
+            color: #212529;
+        }
+        h2 {
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+        }
+        a {
+            color: #212529;
+            text-decoration: none;
+        }
+        a:hover {
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="header clearfix">
+        <h1>欠課管理アプリ</h1>
+        <div class="nav">
+            {% if user.is_authenticated %}
+                <span>{{ user.username }} さん</span>
+                <a href="{% url 'index' %}">ホーム</a>
+                <a href="{% url 'course_create' %}">授業追加</a>
+                <a href="{% url 'logout' %}">ログアウト</a>
+            {% else %}
+                <a href="{% url 'login' %}">ログイン</a>
+                <a href="{% url 'signup' %}">新規登録</a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="container">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+</html>

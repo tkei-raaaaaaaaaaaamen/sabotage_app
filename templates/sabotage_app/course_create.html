@@ -1,0 +1,70 @@
+{% extends 'sabotage_app/base.html' %}
+
+{% block title %}授業作成 - 欠課管理アプリ{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 20px;">
+    <a href="{% url 'index' %}" class="btn-secondary" style="padding: 8px 16px; text-decoration: none; display: inline-block;">← 授業一覧に戻る</a>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <h2 style="text-align: center; margin-bottom: 30px;">新しい授業を作成</h2>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+                <div style="color: #dc3545; font-size: 0.85rem; margin-top: 5px;">
+                    {% for error in form.name.errors %}
+                        <p style="margin: 0;">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <small style="color: #6c757d; font-size: 0.8rem;">授業の名前を入力してください</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.total_time_block.id_for_label }}">{{ form.total_time_block.label }}</label>
+            {{ form.total_time_block }}
+            {% if form.total_time_block.errors %}
+                <div style="color: #dc3545; font-size: 0.85rem; margin-top: 5px;">
+                    {% for error in form.total_time_block.errors %}
+                        <p style="margin: 0;">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <small style="color: #6c757d; font-size: 0.8rem;">授業の総コマ数を入力してください</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.need_percent.id_for_label }}">{{ form.need_percent.label }}</label>
+            {{ form.need_percent }}
+            {% if form.need_percent.errors %}
+                <div style="color: #dc3545; font-size: 0.85rem; margin-top: 5px;">
+                    {% for error in form.need_percent.errors %}
+                        <p style="margin: 0;">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <small style="color: #6c757d; font-size: 0.8rem;">単位取得に必要な出席率を入力してください（例: 70%の場合は「70」）</small>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <button type="submit" class="btn" style="padding: 12px 30px; font-size: 1rem;">授業を作成</button>
+        </div>
+    </form>
+    
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+        <h4 style="margin-bottom: 15px; color: #495057;">計算例</h4>
+        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 0px; font-size: 0.9rem; color: #495057;">
+            <p style="margin: 0 0 10px 0;"><strong>総コマ数:</strong> 15コマ</p>
+            <p style="margin: 0 0 10px 0;"><strong>必要出席率:</strong> 70%</p>
+            <p style="margin: 0 0 10px 0;"><strong>必要出席回数:</strong> 15 × 0.7 = 10.5 → 11回</p>
+            <p style="margin: 0;"><strong>最大欠席可能回数:</strong> 15 - 11 = 4回</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

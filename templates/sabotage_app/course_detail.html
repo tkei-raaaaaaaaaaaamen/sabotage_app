@@ -1,0 +1,104 @@
+{% extends 'sabotage_app/base.html' %}
+
+{% block title %}{{ course.name }} - 授業詳細{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 20px;">
+    <a href="{% url 'index' %}" class="btn-secondary" style="padding: 8px 16px; text-decoration: none; display: inline-block;">← 授業一覧に戻る</a>
+</div>
+
+<div class="card">
+    <h2>{{ course.name }}</h2>
+    
+    <div style="margin-bottom: 20px;">
+        <div class="course-info">授業時間: {{ course.get_weekday_display }}{{ course.period }}限</div>
+        <div class="course-info">総コマ数: {{ total_classes }}コマ</div>
+        <div class="course-info">必要出席率: {{ required_attendance_rate }}%</div>
+        <div class="course-info">必要出席回数: {{ required_attendance_count }}回以上</div>
+        <div class="course-info">現在の欠席回数: {{ current_absence_count }}回</div>
+        <div class="course-info">最大欠席可能回数: {{ max_absence_count }}回</div>
+        <div class="course-info">
+            <strong>残り欠席可能回数: 
+                {% if remaining_absence_count > 0 %}
+                    <span style="color: #28a745;">{{ remaining_absence_count }}回</span>
+                {% elif remaining_absence_count == 0 %}
+                    <span style="color: #ffc107;">これ以上休めません</span>
+                {% else %}
+                    <span style="color: #dc3545;">{{ remaining_absence_count }}回オーバー（単位取得困難）</span>
+                {% endif %}
+            </strong>
+        </div>
+        <div class="course-info">作成日: {{ course.created_at|date:"Y年m月d日" }}</div>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <a href="{% url 'course_edit' course.id %}" class="btn-secondary" style="padding: 8px 16px; text-decoration: none; display: inline-block; margin-right: 10px;">授業情報を編集</a>
+        <button onclick="if(confirm('本当に削除しますか？')) { document.getElementById('delete-form').submit(); }" class="btn-danger" style="padding: 8px 16px;">授業を削除</button>
+        <form id="delete-form" method="post" action="{% url 'course_delete' course.id %}" style="display: none;">
+            {% csrf_token %}
+        </form>
+    </div>
+</div>
+
+<!-- 欠席記録追加フォーム -->
+<div class="card">
+    <h3>欠席記録を追加</h3>
+    <form method="post" action="{% url 'add_absence' %}" style="display: flex; gap: 15px; align-items: end; flex-wrap: wrap;">
+        {% csrf_token %}
+        <input type="hidden" name="course_id" value="{{ course.id }}">
+        <input type="hidden" name="next" value="course_detail">
+        
+        <div style="flex: 1; min-width: 150px;">
+            <label for="date" style="display: block; margin-bottom: 5px; font-weight: 400;">日付</label>
+            <input type="date" id="date" name="date" required style="width: 100%; padding: 10px; border: 1px solid #dee2e6;">
+        </div>
+        
+        <div style="flex: 0 0 120px;">
+            <label for="absence_type" style="display: block; margin-bottom: 5px; font-weight: 400;">種別</label>
+            <select id="absence_type" name="absence_type" required style="width: 100%; padding: 10px; border: 1px solid #dee2e6;">
+                <option value="">選択</option>
+                <option value="サボり">サボり</option>
+                <option value="病欠">病欠</option>
+                <option value="忌引">忌引</option>
+                <option value="その他">その他</option>
+            </select>
+        </div>
+        
+        <div style="flex: 1; min-width: 150px;">
+            <label for="note" style="display: block; margin-bottom: 5px; font-weight: 400;">メモ</label>
+            <input type="text" id="note" name="note" placeholder="任意" style="width: 100%; padding: 10px; border: 1px solid #dee2e6;">
+        </div>
+        
+        <button type="submit" class="btn">追加</button>
+    </form>
+</div>
+
+<!-- 欠席記録一覧 -->
+<div class="card">
+    <h3>欠席記録</h3>
+    {% if sabotage_records %}
+        {% for record in sabotage_records %}
+        <div style="border-bottom: 1px solid #dee2e6; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div style="font-weight: 500;">{{ record.date|date:"Y年m月d日" }}</div>
+                <div style="color: #6c757d; font-size: 0.9rem;">{{ record.absence_type }}</div>
+                {% if record.note %}
+                    <div style="color: #6c757d; font-size: 0.85rem; margin-top: 5px;">メモ: {{ record.note }}</div>
+                {% endif %}
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <a href="{% url 'record_edit' record.id %}" class="btn-secondary" style="padding: 4px 8px; font-size: 0.8rem; text-decoration: none;">編集</a>
+                <button onclick="if(confirm('本当に削除しますか？')) { document.getElementById('delete-record-{{ record.id }}').submit(); }" class="btn-danger" style="padding: 4px 8px; font-size: 0.8rem;">削除</button>
+                <form id="delete-record-{{ record.id }}" method="post" action="{% url 'record_delete' record.id %}" style="display: none;">
+                    {% csrf_token %}
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div style="text-align: center; color: #6c757d; padding: 20px;">
+            まだ欠席記録がありません。
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
