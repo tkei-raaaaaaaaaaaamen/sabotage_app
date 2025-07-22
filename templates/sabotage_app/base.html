@@ -206,13 +206,13 @@
         </div>
     </div>
     <div class="container">
-        {% if messages %}
+        {% comment %} {% if messages %}
             <div class="messages">
                 {% for message in messages %}
                     <div class="message {{ message.tags }}">{{ message }}</div>
                 {% endfor %}
             </div>
-        {% endif %}
+        {% endif %} {% endcomment %}
 
         {% block content %}
         {% endblock %}

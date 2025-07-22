@@ -9,11 +9,44 @@
 
 <div class="card">
     <h2>{{ course.name }}</h2>
+
+        <!-- 欠席記録追加フォーム -->
+    <div class="card">
+        <h3>欠席記録を追加</h3>
+        <form method="post" action="{% url 'sabotage_record_edit' %}" style="display: flex; gap: 15px; align-items: end; flex-wrap: wrap;">
+            {% csrf_token %}
+            <input type="hidden" name="course_id" value="{{ course.id }}">
+            <input type="hidden" name="action" value="absence">
+            
+            <div style="flex: 1; min-width: 150px;">
+                <label for="date" style="display: block; margin-bottom: 5px; font-weight: 400;">日付</label>
+                <input type="date" id="date" name="date" required style="width: 100%; padding: 10px; border: 1px solid #dee2e6;">
+            </div>
+            
+            <div style="flex: 0 0 120px;">
+                <label for="absence_type" style="display: block; margin-bottom: 5px; font-weight: 400;">種別</label>
+                <select id="absence_type" name="absence_type" required style="width: 100%; padding: 10px; border: 1px solid #dee2e6;">
+                    <option value="">選択</option>
+                    <option value="サボり">サボり</option>
+                    <option value="病欠">病欠</option>
+                    <option value="忌引">忌引</option>
+                    <option value="その他">その他</option>
+                </select>
+            </div>
+            
+            <div style="flex: 1; min-width: 150px;">
+                <label for="note" style="display: block; margin-bottom: 5px; font-weight: 400;">メモ</label>
+                <input type="text" id="note" name="note" placeholder="任意" style="width: 100%; padding: 10px; border: 1px solid #dee2e6;">
+            </div>
+            
+            <button type="submit" class="btn">追加</button>
+        </form>
+    </div>
+
     
     <div style="margin-bottom: 20px;">
-        <div class="course-info">授業時間: {{ course.get_weekday_display }}{{ course.period }}限</div>
         <div class="course-info">総コマ数: {{ total_classes }}コマ</div>
-        <div class="course-info">必要出席率: {{ required_attendance_rate }}%</div>
+        <div class="course-info">必要出席率: {{ required_attendance_rate|default:80 }}%</div>
         <div class="course-info">必要出席回数: {{ required_attendance_count }}回以上</div>
         <div class="course-info">現在の欠席回数: {{ current_absence_count }}回</div>
         <div class="course-info">最大欠席可能回数: {{ max_absence_count }}回</div>
@@ -40,38 +73,6 @@
     </div>
 </div>
 
-<!-- 欠席記録追加フォーム -->
-<div class="card">
-    <h3>欠席記録を追加</h3>
-    <form method="post" action="{% url 'sabotage_record_edit' %}" style="display: flex; gap: 15px; align-items: end; flex-wrap: wrap;">
-        {% csrf_token %}
-        <input type="hidden" name="course_id" value="{{ course.id }}">
-        <input type="hidden" name="action" value="absence">
-        
-        <div style="flex: 1; min-width: 150px;">
-            <label for="date" style="display: block; margin-bottom: 5px; font-weight: 400;">日付</label>
-            <input type="date" id="date" name="date" required style="width: 100%; padding: 10px; border: 1px solid #dee2e6;">
-        </div>
-        
-        <div style="flex: 0 0 120px;">
-            <label for="absence_type" style="display: block; margin-bottom: 5px; font-weight: 400;">種別</label>
-            <select id="absence_type" name="absence_type" required style="width: 100%; padding: 10px; border: 1px solid #dee2e6;">
-                <option value="">選択</option>
-                <option value="サボり">サボり</option>
-                <option value="病欠">病欠</option>
-                <option value="忌引">忌引</option>
-                <option value="その他">その他</option>
-            </select>
-        </div>
-        
-        <div style="flex: 1; min-width: 150px;">
-            <label for="note" style="display: block; margin-bottom: 5px; font-weight: 400;">メモ</label>
-            <input type="text" id="note" name="note" placeholder="任意" style="width: 100%; padding: 10px; border: 1px solid #dee2e6;">
-        </div>
-        
-        <button type="submit" class="btn">追加</button>
-    </form>
-</div>
 
 <!-- 欠席記録一覧 -->
 <div class="card">

@@ -32,13 +32,9 @@ class IndexView(View):
             for period in periods:
                 timetable[weekday][period] = None
         
-        # スケジュールを時間割に配置
-        for schedule in schedules:
-            timetable[schedule.weekday][schedule.period] = schedule
-        
-        # 各授業の統計情報も計算
+        # 各授業の統計情報を計算してマップを作成
+        course_stats_map = {}
         courses = Course.objects.filter(user=request.user)
-        courses_with_stats = []
         for course in courses:
             sabotage_records = SabotageRecord.objects.filter(course=course)
             
@@ -50,13 +46,32 @@ class IndexView(View):
             max_absence_count = total_classes - required_attendance_count
             remaining_absence_count = max_absence_count - current_absence_count
             
-            courses_with_stats.append({
-                'course': course,
+            course_stats_map[course.id] = {
                 'current_absence_count': current_absence_count,
                 'max_absence_count': int(max_absence_count),
                 'remaining_absence_count': int(remaining_absence_count),
                 'recent_records': sabotage_records.order_by('-date')[:3]
+            }
+        
+        # スケジュールを時間割に配置（統計情報付き）
+        for schedule in schedules:
+            schedule.stats = course_stats_map.get(schedule.course.id, {
+                'current_absence_count': 0,
+                'max_absence_count': 0,
+                'remaining_absence_count': 0,
+                'recent_records': []
             })
+            timetable[schedule.weekday][schedule.period] = schedule
+        
+        # 各授業の統計情報も計算
+        courses_with_stats = []
+        for course in courses:
+            stats = course_stats_map.get(course.id, {})
+            if stats:
+                courses_with_stats.append({
+                    'course': course,
+                    **stats
+                })
         
         context = {
             'timetable': timetable,
@@ -233,7 +248,6 @@ class CourseCreateView(View):
                         period=schedule_data['period']
                     )
                 
-                messages.success(request, f'授業「{course.name}」を作成しました。')
                 return redirect('index')
             else:
                 messages.error(request, f'週のコマ数（{weekly_classes}）分のスケジュールを正しく入力してください。')
@@ -258,7 +272,6 @@ class CourseEditView(View):
         form = CourseForm(request.POST, instance=course)
         if form.is_valid():
             form.save()
-            messages.success(request, f'授業「{course.name}」を更新しました。')
             return redirect('course_detail', course_id=course.id)
         return render(request, 'sabotage_app/course_edit.html', {'form': form, 'course': course})
 
@@ -270,7 +283,6 @@ class CourseDeleteView(View):
         course = get_object_or_404(Course, id=course_id, user=request.user)
         course_name = course.name
         course.delete()
-        messages.success(request, f'授業「{course_name}」を削除しました。')
         return redirect('index')
 
 course_delete = CourseDeleteView.as_view()
