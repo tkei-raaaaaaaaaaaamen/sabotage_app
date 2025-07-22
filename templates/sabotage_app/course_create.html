@@ -4,21 +4,23 @@
 
 {% block content %}
 <div style="margin-bottom: 20px;">
-    <a href="{% url 'index' %}" class="btn-secondary" style="padding: 8px 16px; text-decoration: none; display: inline-block;">← 授業一覧に戻る</a>
+    <a href="{% url 'index' %}" class="btn-secondary" style="padding: 8px 16px; text-decoration: none; display: inline-block;">← 時間割に戻る</a>
 </div>
 
-<div class="card" style="max-width: 600px; margin: 0 auto;">
+<div class="card" style="max-width: 700px; margin: 0 auto;">
     <h2 style="text-align: center; margin-bottom: 30px;">新しい授業を作成</h2>
     
-    <form method="post">
+    <form method="post" id="courseForm">
         {% csrf_token %}
         
+        <h3 style="margin-bottom: 20px; color: #495057;">授業情報</h3>
+        
         <div class="form-group">
-            <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
-            {{ form.name }}
-            {% if form.name.errors %}
+            <label for="{{ course_form.name.id_for_label }}">{{ course_form.name.label }}</label>
+            {{ course_form.name }}
+            {% if course_form.name.errors %}
                 <div style="color: #dc3545; font-size: 0.85rem; margin-top: 5px;">
-                    {% for error in form.name.errors %}
+                    {% for error in course_form.name.errors %}
                         <p style="margin: 0;">{{ error }}</p>
                     {% endfor %}
                 </div>
@@ -27,11 +29,11 @@
         </div>
         
         <div class="form-group">
-            <label for="{{ form.total_time_block.id_for_label }}">{{ form.total_time_block.label }}</label>
-            {{ form.total_time_block }}
-            {% if form.total_time_block.errors %}
+            <label for="{{ course_form.total_time_block.id_for_label }}">{{ course_form.total_time_block.label }}</label>
+            {{ course_form.total_time_block }}
+            {% if course_form.total_time_block.errors %}
                 <div style="color: #dc3545; font-size: 0.85rem; margin-top: 5px;">
-                    {% for error in form.total_time_block.errors %}
+                    {% for error in course_form.total_time_block.errors %}
                         <p style="margin: 0;">{{ error }}</p>
                     {% endfor %}
                 </div>
@@ -40,31 +42,171 @@
         </div>
         
         <div class="form-group">
-            <label for="{{ form.need_percent.id_for_label }}">{{ form.need_percent.label }}</label>
-            {{ form.need_percent }}
-            {% if form.need_percent.errors %}
+            <label for="{{ course_form.need_percent.id_for_label }}">{{ course_form.need_percent.label }}</label>
+            {{ course_form.need_percent }}
+            {% if course_form.need_percent.errors %}
                 <div style="color: #dc3545; font-size: 0.85rem; margin-top: 5px;">
-                    {% for error in form.need_percent.errors %}
+                    {% for error in course_form.need_percent.errors %}
                         <p style="margin: 0;">{{ error }}</p>
                     {% endfor %}
                 </div>
             {% endif %}
-            <small style="color: #6c757d; font-size: 0.8rem;">単位取得に必要な出席率を入力してください（例: 70%の場合は「70」）</small>
+            <small style="color: #6c757d; font-size: 0.8rem;">必要な出席率を入力してください（例：70）</small>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ course_form.weekly_classes.id_for_label }}">{{ course_form.weekly_classes.label }}</label>
+            {{ course_form.weekly_classes }}
+            {% if course_form.weekly_classes.errors %}
+                <div style="color: #dc3545; font-size: 0.85rem; margin-top: 5px;">
+                    {% for error in course_form.weekly_classes.errors %}
+                        <p style="margin: 0;">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <small style="color: #6c757d; font-size: 0.8rem;">{{ course_form.weekly_classes.help_text }}</small>
+        </div>
+
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #dee2e6;">
+        
+        <h3 style="margin-bottom: 20px; color: #495057;">スケジュール</h3>
+        
+        <div id="scheduleContainer">
+            <!-- 動的に生成されるスケジュール入力フォーム -->
         </div>
         
-        <div style="text-align: center; margin-top: 30px;">
-            <button type="submit" class="btn" style="padding: 12px 30px; font-size: 1rem;">授業を作成</button>
+        <div class="form-group" style="text-align: center; margin-top: 40px;">
+            <button type="submit" class="btn-primary" style="padding: 12px 24px; font-size: 16px;">
+                授業を作成
+            </button>
         </div>
     </form>
-    
-    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">
-        <h4 style="margin-bottom: 15px; color: #495057;">計算例</h4>
-        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 0px; font-size: 0.9rem; color: #495057;">
-            <p style="margin: 0 0 10px 0;"><strong>総コマ数:</strong> 15コマ</p>
-            <p style="margin: 0 0 10px 0;"><strong>必要出席率:</strong> 70%</p>
-            <p style="margin: 0 0 10px 0;"><strong>必要出席回数:</strong> 15 × 0.7 = 10.5 → 11回</p>
-            <p style="margin: 0;"><strong>最大欠席可能回数:</strong> 15 - 11 = 4回</p>
-        </div>
-    </div>
 </div>
+
+<style>
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+    color: #495057;
+    font-size: 1rem;
+}
+
+.form-group input, .form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 1rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-group input:focus, .form-group select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.schedule-item {
+    display: flex;
+    gap: 15px;
+    align-items: end;
+    margin-bottom: 15px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.schedule-item .form-field {
+    flex: 1;
+}
+
+.schedule-item .form-field label {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.schedule-item .form-field select {
+    margin-bottom: 0;
+}
+
+.schedule-number {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #007bff;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const weeklyClassesInput = document.getElementById('{{ course_form.weekly_classes.id_for_label }}');
+    const scheduleContainer = document.getElementById('scheduleContainer');
+    
+    const weekdayOptions = [
+        {value: 'monday', text: '月曜日'},
+        {value: 'tuesday', text: '火曜日'},
+        {value: 'wednesday', text: '水曜日'},
+        {value: 'thursday', text: '木曜日'},
+        {value: 'friday', text: '金曜日'}
+    ];
+    
+    const periodOptions = [
+        {value: '1', text: '1限'},
+        {value: '2', text: '2限'},
+        {value: '3', text: '3限'},
+        {value: '4', text: '4限'}
+    ];
+    
+    function generateScheduleForms(count) {
+        scheduleContainer.innerHTML = '';
+        
+        for (let i = 0; i < count; i++) {
+            const scheduleDiv = document.createElement('div');
+            scheduleDiv.className = 'schedule-item';
+            
+            scheduleDiv.innerHTML = `
+                <div class="schedule-number">スケジュール ${i + 1}</div>
+                <div class="form-field">
+                    <label for="weekday_${i}">曜日</label>
+                    <select name="weekday_${i}" id="weekday_${i}" required>
+                        <option value="">選択してください</option>
+                        ${weekdayOptions.map(option => 
+                            `<option value="${option.value}">${option.text}</option>`
+                        ).join('')}
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label for="period_${i}">時限</label>
+                    <select name="period_${i}" id="period_${i}" required>
+                        <option value="">選択してください</option>
+                        ${periodOptions.map(option => 
+                            `<option value="${option.value}">${option.text}</option>`
+                        ).join('')}
+                    </select>
+                </div>
+            `;
+            
+            scheduleContainer.appendChild(scheduleDiv);
+        }
+    }
+    
+    // 初期表示
+    generateScheduleForms(parseInt(weeklyClassesInput.value) || 1);
+    
+    // 週のコマ数が変更されたときにスケジュールフォームを再生成
+    weeklyClassesInput.addEventListener('change', function() {
+        const count = parseInt(this.value) || 1;
+        generateScheduleForms(count);
+    });
+});
+</script>
 {% endblock %}

@@ -198,7 +198,6 @@
             {% if user.is_authenticated %}
                 <span>{{ user.username }} さん</span>
                 <a href="{% url 'index' %}">ホーム</a>
-                <a href="{% url 'course_create' %}">授業追加</a>
                 <a href="{% url 'logout' %}">ログアウト</a>
             {% else %}
                 <a href="{% url 'login' %}">ログイン</a>
@@ -206,18 +205,15 @@
             {% endif %}
         </div>
     </div>
-    
     <div class="container">
         {% if messages %}
             <div class="messages">
                 {% for message in messages %}
-                    <div class="message {{ message.tags }}">
-                        {{ message }}
-                    </div>
+                    <div class="message {{ message.tags }}">{{ message }}</div>
                 {% endfor %}
             </div>
         {% endif %}
-        
+
         {% block content %}
         {% endblock %}
     </div>

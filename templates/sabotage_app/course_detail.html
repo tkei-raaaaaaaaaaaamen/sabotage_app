@@ -43,10 +43,10 @@
 <!-- 欠席記録追加フォーム -->
 <div class="card">
     <h3>欠席記録を追加</h3>
-    <form method="post" action="{% url 'add_absence' %}" style="display: flex; gap: 15px; align-items: end; flex-wrap: wrap;">
+    <form method="post" action="{% url 'sabotage_record_edit' %}" style="display: flex; gap: 15px; align-items: end; flex-wrap: wrap;">
         {% csrf_token %}
         <input type="hidden" name="course_id" value="{{ course.id }}">
-        <input type="hidden" name="next" value="course_detail">
+        <input type="hidden" name="action" value="absence">
         
         <div style="flex: 1; min-width: 150px;">
             <label for="date" style="display: block; margin-bottom: 5px; font-weight: 400;">日付</label>
@@ -87,10 +87,12 @@
                 {% endif %}
             </div>
             <div style="display: flex; gap: 10px;">
-                <a href="{% url 'record_edit' record.id %}" class="btn-secondary" style="padding: 4px 8px; font-size: 0.8rem; text-decoration: none;">編集</a>
                 <button onclick="if(confirm('本当に削除しますか？')) { document.getElementById('delete-record-{{ record.id }}').submit(); }" class="btn-danger" style="padding: 4px 8px; font-size: 0.8rem;">削除</button>
-                <form id="delete-record-{{ record.id }}" method="post" action="{% url 'record_delete' record.id %}" style="display: none;">
+                <form id="delete-record-{{ record.id }}" method="post" action="{% url 'sabotage_record_edit' %}" style="display: none;">
                     {% csrf_token %}
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="record_id" value="{{ record.id }}">
+                    <input type="hidden" name="course_id" value="{{ course.id }}">
                 </form>
             </div>
         </div>
