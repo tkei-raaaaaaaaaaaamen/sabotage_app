@@ -196,7 +196,7 @@
         <h1>欠課管理アプリ</h1>
         <div class="nav">
             {% if user.is_authenticated %}
-                <span>{{ user.username }} さん。</span>
+                <span>{{ user.username }} さん</span>
                 <a href="{% url 'index' %}">ホーム</a>
                 <a href="{% url 'logout' %}">ログアウト</a>
             {% else %}
