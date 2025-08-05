@@ -8,17 +8,14 @@ pip install -r requirements.txt
 echo "📊 Collecting static files..."
 python manage.py collectstatic --no-input
 
-echo "🗄️ Running migrations..."
-python manage.py migrate --no-input
+echo "🗄️ Force creating database tables..."
+# Djangoの標準テーブルを強制作成
+python manage.py migrate --run-syncdb
 
-echo "👤 Creating superuser..."
-python manage.py shell -c "
-from django.contrib.auth.models import User
-if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
-    print('✅ Superuser created: username=admin, password=admin123')
-else:
-    print('ℹ️ Superuser already exists')
-"
+echo "🗄️ Running all migrations..."
+python manage.py migrate
+
+echo "👤 Setting up production..."
+python manage.py setup_production
 
 echo "🚀 Build completed successfully!"
