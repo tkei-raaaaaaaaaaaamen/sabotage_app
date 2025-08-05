@@ -1,0 +1,7 @@
+# 改行コードの自動変換設定
+* text=auto
+*.py text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.md text eol=lf
