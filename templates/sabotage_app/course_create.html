@@ -4,7 +4,7 @@
 
 {% block content %}
 <div style="margin-bottom: 20px;">
-    <a href="{% url 'index' %}" class="btn-secondary" style="padding: 8px 16px; text-decoration: none; display: inline-block;">← 時間割に戻る</a>
+    <a href="{% url 'index' %}" class="btn btn-secondary">← 時間割に戻る</a>
 </div>
 
 <div class="card" style="max-width: 700px; margin: 0 auto;">
@@ -75,10 +75,9 @@
             <!-- 動的に生成されるスケジュール入力フォーム -->
         </div>
         
-        <div class="form-group" style="text-align: center; margin-top: 40px;">
-            <button type="submit" class="btn-primary" style="padding: 12px 24px; font-size: 16px;">
-                授業を作成
-            </button>
+        <div class="form-group d-flex gap-3 justify-content-center" style="margin-top: 40px;">
+            <button type="submit" class="btn btn-primary">授業を作成</button>
+            <a href="{% url 'index' %}" class="btn btn-secondary">キャンセル</a>
         </div>
     </form>
 </div>
@@ -100,7 +99,7 @@
     width: 100%;
     padding: 12px;
     border: 1px solid #ced4da;
-    border-radius: 8px;
+    border-radius: 0px;
     box-sizing: border-box;
     font-size: 1rem;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
@@ -112,6 +111,58 @@
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
+/* ボタンの統一 */
+.btn {
+    padding: 12px 24px;
+    border: 2px solid;
+    border-radius: 0px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-width: 120px;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: #ffffff;
+    border-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+    color: #ffffff;
+}
+
+.btn-secondary {
+    background-color: #ffffff;
+    color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background-color: #6c757d;
+    color: #ffffff;
+    border-color: #6c757d;
+}
+
+/* フレックスボックスユーティリティ */
+.d-flex {
+    display: flex;
+}
+
+.gap-3 {
+    gap: 1rem;
+}
+
+.justify-content-center {
+    justify-content: center;
+}
+
 .schedule-item {
     display: flex;
     gap: 15px;
@@ -119,8 +170,14 @@
     margin-bottom: 15px;
     padding: 15px;
     background-color: #f8f9fa;
-    border-radius: 8px;
+    border-radius: 5px;
     border: 1px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.schedule-item:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
 }
 
 .schedule-item .form-field {
@@ -143,6 +200,23 @@
     margin-bottom: 10px;
     padding-bottom: 5px;
     border-bottom: 2px solid #007bff;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+    .btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .d-flex {
+        flex-direction: column;
+    }
+    
+    .schedule-item {
+        flex-direction: column;
+        align-items: stretch;
+    }
 }
 </style>
 

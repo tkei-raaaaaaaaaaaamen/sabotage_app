@@ -4,7 +4,7 @@
 
 {% block content %}
 <div style="margin-bottom: 20px;">
-    <a href="{% url 'index' %}" class="btn-secondary" style="padding: 8px 16px; text-decoration: none; display: inline-block;">← 授業一覧に戻る</a>
+    <a href="{% url 'index' %}" class="btn btn-secondary">← 授業一覧に戻る</a>
 </div>
 
 <div class="card">
@@ -39,7 +39,7 @@
                 <input type="text" id="note" name="note" placeholder="任意" style="width: 100%; padding: 10px; border: 1px solid #dee2e6;">
             </div>
             
-            <button type="submit" class="btn">追加</button>
+            <button type="submit" class="btn btn-primary">追加</button>
         </form>
     </div>
 
@@ -64,9 +64,9 @@
         <div class="course-info">作成日: {{ course.created_at|date:"Y年m月d日" }}</div>
     </div>
     
-    <div style="margin-top: 20px;">
-        <a href="{% url 'course_edit' course.id %}" class="btn-secondary" style="padding: 8px 16px; text-decoration: none; display: inline-block; margin-right: 10px;">授業情報を編集</a>
-        <button onclick="if(confirm('本当に削除しますか？')) { document.getElementById('delete-form').submit(); }" class="btn-danger" style="padding: 8px 16px;">授業を削除</button>
+    <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <a href="{% url 'course_edit' course.id %}" class="btn btn-secondary">授業情報を編集</a>
+        <button onclick="if(confirm('本当に削除しますか？')) { document.getElementById('delete-form').submit(); }" class="btn btn-danger">授業を削除</button>
         <form id="delete-form" method="post" action="{% url 'course_delete' course.id %}" style="display: none;">
             {% csrf_token %}
         </form>
@@ -88,7 +88,7 @@
                 {% endif %}
             </div>
             <div style="display: flex; gap: 10px;">
-                <button onclick="if(confirm('本当に削除しますか？')) { document.getElementById('delete-record-{{ record.id }}').submit(); }" class="btn-danger" style="padding: 4px 8px; font-size: 0.8rem;">削除</button>
+                <button onclick="if(confirm('本当に削除しますか？')) { document.getElementById('delete-record-{{ record.id }}').submit(); }" class="btn btn-danger" style="font-size: 0.8rem; padding: 8px 12px;">削除</button>
                 <form id="delete-record-{{ record.id }}" method="post" action="{% url 'sabotage_record_edit' %}" style="display: none;">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="delete">

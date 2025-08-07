@@ -264,16 +264,84 @@ course_create = CourseCreateView.as_view()
 class CourseEditView(View):
     def get(self, request, course_id):
         course = get_object_or_404(Course, id=course_id, user=request.user)
-        form = CourseForm(instance=course)
-        return render(request, 'sabotage_app/course_edit.html', {'form': form, 'course': course})
+        course_form = CourseForm(instance=course)
+        
+        # 既存のスケジュールを取得
+        schedules = CourseSchedule.objects.filter(course=course).order_by('id')
+        
+        # weekly_classesを現在のスケジュール数に設定
+        course_form.fields['weekly_classes'].initial = schedules.count()
+        
+        schedule_form = CourseScheduleForm()
+        
+        context = {
+            'course_form': course_form,
+            'schedule_form': schedule_form,
+            'course': course,
+            'schedules': schedules,
+            'is_edit': True
+        }
+        return render(request, 'sabotage_app/course_edit.html', context)
     
     def post(self, request, course_id):
         course = get_object_or_404(Course, id=course_id, user=request.user)
-        form = CourseForm(request.POST, instance=course)
-        if form.is_valid():
-            form.save()
-            return redirect('course_detail', course_id=course.id)
-        return render(request, 'sabotage_app/course_edit.html', {'form': form, 'course': course})
+        course_form = CourseForm(request.POST, instance=course)
+        
+        if course_form.is_valid():
+            weekly_classes = course_form.cleaned_data['weekly_classes']
+            
+            # 各スケジュールのデータを取得
+            schedules_data = []
+            valid_schedules = 0
+            
+            for i in range(weekly_classes):
+                weekday = request.POST.get(f'weekday_{i}')
+                period = request.POST.get(f'period_{i}')
+                
+                if weekday and period:
+                    try:
+                        period = int(period)
+                        schedules_data.append({
+                            'weekday': weekday,
+                            'period': period
+                        })
+                        valid_schedules += 1
+                    except ValueError:
+                        pass
+            
+            # 有効なスケジュールが週のコマ数と一致するかチェック
+            if valid_schedules == weekly_classes:
+                # 授業情報を更新
+                updated_course = course_form.save()
+                
+                # 既存のスケジュールを削除
+                CourseSchedule.objects.filter(course=updated_course).delete()
+                
+                # 新しいスケジュールを作成
+                for schedule_data in schedules_data:
+                    CourseSchedule.objects.create(
+                        course=updated_course,
+                        weekday=schedule_data['weekday'],
+                        period=schedule_data['period']
+                    )
+                
+                messages.success(request, f'授業「{updated_course.name}」を更新しました。')
+                return redirect('course_detail', course_id=updated_course.id)
+            else:
+                messages.error(request, f'週のコマ数（{weekly_classes}）分のスケジュールを正しく入力してください。')
+        
+        # エラー時は既存のスケジュールを再取得
+        schedules = CourseSchedule.objects.filter(course=course).order_by('id')
+        schedule_form = CourseScheduleForm()
+        
+        context = {
+            'course_form': course_form,
+            'schedule_form': schedule_form,
+            'course': course,
+            'schedules': schedules,
+            'is_edit': True
+        }
+        return render(request, 'sabotage_app/course_edit.html', context)
 
 course_edit = CourseEditView.as_view()
 
