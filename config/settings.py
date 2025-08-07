@@ -13,6 +13,14 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 
+# 本番環境かどうかを判定
+PRODUCTION = os.getenv('PRODUCTION', 'False') == 'True'
+
+# decouple は本番環境でのみ使用
+if PRODUCTION:
+    from decouple import config
+    from dj_database_url import parse as dburl
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,12 +29,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-lt(t(q40(e4i38!@bb-)fl&tg%2)s#a&r5ue-loa2sf96x+x9z'
+if PRODUCTION:
+    SECRET_KEY = config('SECRET_KEY')
+else:
+    SECRET_KEY = 'django-insecure-lt(t(q40(e4i38!@bb-)fl&tg%2)s#a&r5ue-loa2sf96x+x9z'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = not PRODUCTION
 
-ALLOWED_HOSTS = []
+if PRODUCTION:
+    ALLOWED_HOSTS = ['sabotage-app.onrender.com', '.onrender.com']
+else:
+    ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -43,13 +57,20 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+]
+
+# 本番環境でのみWhiteNoiseを追加
+if PRODUCTION:
+    MIDDLEWARE.append('whitenoise.middleware.WhiteNoiseMiddleware')
+
+MIDDLEWARE.extend([
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-]
+])
 
 ROOT_URLCONF = 'config.urls'
 
@@ -75,12 +96,20 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if PRODUCTION:
+    # 本番環境: PostgreSQL
+    default_dburl = "sqlite:///" + str(BASE_DIR / "db.sqlite3")
+    DATABASES = {
+        "default": config("DATABASE_URL", default=default_dburl, cast=dburl),
     }
-}
+else:
+    # ローカル環境: SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -119,6 +148,11 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+if PRODUCTION:
+    # 本番環境
+    STATIC_ROOT = str(BASE_DIR / "staticfiles")
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
@@ -132,13 +166,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = 'login'
-
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}

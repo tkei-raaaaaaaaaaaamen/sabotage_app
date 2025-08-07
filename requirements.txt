@@ -1,1 +1,6 @@
 django==4.2
+dj-database-url
+python-decouple
+gunicorn
+psycopg2-binary
+whitenoise
