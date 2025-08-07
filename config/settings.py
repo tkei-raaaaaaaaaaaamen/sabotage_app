@@ -13,8 +13,13 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 
-# 本番環境かどうかを判定
-PRODUCTION = os.getenv('PRODUCTION', 'False') == 'True'
+# 本番環境かどうかを判定（複数の方法で確実に判定）
+PRODUCTION = (
+    os.getenv('PRODUCTION', 'False') == 'True' or
+    os.getenv('RENDER') == 'true' or  # Renderの環境変数
+    os.getenv('DATABASE_URL', '').startswith('postgres') or  # PostgreSQLが設定されている
+    'onrender.com' in os.getenv('ALLOWED_HOSTS', '')  # ALLOWED_HOSTSにRenderドメインが含まれている
+)
 
 # decouple は本番環境でのみ使用
 if PRODUCTION:
@@ -37,10 +42,8 @@ else:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = not PRODUCTION
 
-if PRODUCTION:
-    ALLOWED_HOSTS = ['sabotage-app.onrender.com', '.onrender.com']
-else:
-    ALLOWED_HOSTS = []
+# ALLOWED_HOSTS設定 - すべてのホストを許可
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
