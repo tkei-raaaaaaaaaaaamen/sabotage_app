@@ -13,18 +13,30 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 
-# 本番環境かどうかを判定（複数の方法で確実に判定）
+# 本番環境かどうかを判定
 PRODUCTION = (
-    os.getenv('PRODUCTION', 'False') == 'True' or
-    os.getenv('RENDER') == 'true' or  # Renderの環境変数
     os.getenv('DATABASE_URL', '').startswith('postgres') or  # PostgreSQLが設定されている
-    'onrender.com' in os.getenv('ALLOWED_HOSTS', '')  # ALLOWED_HOSTSにRenderドメインが含まれている
+    os.getenv('RENDER') == 'true'  # Renderの環境変数
 )
 
-# decouple は本番環境でのみ使用
+# decouple は本番環境でのみ使用（エラー回避のためtry-except使用）
 if PRODUCTION:
-    from decouple import config
-    from dj_database_url import parse as dburl
+    try:
+        from decouple import config
+        from dj_database_url import parse as dburl
+    except ImportError:
+        # パッケージがない場合は環境変数を直接使用
+        config = lambda key, default=None: os.getenv(key, default)
+        def dburl(url):
+            # 簡単なPostgreSQL URL解析
+            return {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': url.split('/')[-1],
+                'USER': url.split('//')[1].split(':')[0],
+                'PASSWORD': url.split('//')[1].split(':')[1].split('@')[0],
+                'HOST': url.split('@')[1].split(':')[0],
+                'PORT': url.split('@')[1].split(':')[1].split('/')[0],
+            }
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -35,7 +47,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 if PRODUCTION:
-    SECRET_KEY = config('SECRET_KEY')
+    SECRET_KEY = config('SECRET_KEY', default='django-insecure-production-key-please-change-in-env')
 else:
     SECRET_KEY = 'django-insecure-lt(t(q40(e4i38!@bb-)fl&tg%2)s#a&r5ue-loa2sf96x+x9z'
 
@@ -100,11 +112,33 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 if PRODUCTION:
-    # 本番環境: PostgreSQL
-    default_dburl = "sqlite:///" + str(BASE_DIR / "db.sqlite3")
-    DATABASES = {
-        "default": config("DATABASE_URL", default=default_dburl, cast=dburl),
-    }
+    # 本番環境: PostgreSQL（DATABASE_URLを直接使用）
+    database_url = os.getenv('DATABASE_URL')
+    if database_url:
+        try:
+            DATABASES = {
+                "default": dburl(database_url),
+            }
+        except:
+            # フォールバック: 環境変数を直接解析
+            DATABASES = {
+                'default': {
+                    'ENGINE': 'django.db.backends.postgresql',
+                    'NAME': os.getenv('DB_NAME', 'postgres'),
+                    'USER': os.getenv('DB_USER', 'postgres'),
+                    'PASSWORD': os.getenv('DB_PASSWORD', ''),
+                    'HOST': os.getenv('DB_HOST', 'localhost'),
+                    'PORT': os.getenv('DB_PORT', '5432'),
+                }
+            }
+    else:
+        # PostgreSQL URLがない場合はSQLiteを使用
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
 else:
     # ローカル環境: SQLite
     DATABASES = {
